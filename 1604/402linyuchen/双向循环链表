@@ -1,0 +1,90 @@
+#include<stdio.h>
+#include<stdlib.h>
+typedef struct DLNode
+{
+    int data;                //数据域
+    DLNode *prior;               //直接前驱指针
+    DLNode *next;               //直接后继指针
+}DLNode,*DLinkList;
+
+/* 初始化双向循环链表L */
+void InitList(DLinkList *L)
+{
+    *L=(DLinkList)malloc(sizeof(DLNode));
+    if(NULL != (*L))
+        (*L)->next = (*L)->prior = (*L);    //双向链表的头结点
+    else
+        exit(0);
+}
+/* 产生双向循环链表 */
+void CreateDLinkList(DLinkList L,int n)
+{
+    DLNode *rear,*s;
+    int c;
+    rear=L;
+    int i;
+    for(i=0;i<n;i++)
+    {
+        s=(DLNode*)malloc(sizeof(DLNode));
+        scanf("%d",&c);
+        s->data=c;
+        rear->next=s;
+        rear=s;
+    }
+    rear->next=L;
+}
+/* 清空双向循环链表L */
+void ClearList(DLinkList L)
+{
+    DLinkList p = L->next;     //p指向第一个结点
+    while(p != L)              //判断是否到链表尾部
+    {
+        p = p->next;
+        free(p->prior);
+    }
+    L->next = L->prior = L;    //最后设置头结点的两个指针域指向其本身
+}
+/* 销毁双向循环链表L */
+void DestroyList(DLinkList *L)
+{
+    DLinkList q,p = (*L)->next;   //p指向第一个结点
+    while(p != (*L))              //判断是否到链表尾部
+    {
+        q = p->next;
+        free(p);
+        p = q;
+    }
+    free((*L));
+    (*L) = NULL;          //销毁头结点并将头结点指针置空
+}
+/* 判断双向循环链表L是否为空:若L为空表，则返回TRUE，否则返回FALSE */
+int TestListEmpty(DLinkList L)
+{
+    if(L->next == L && L->prior == L)
+        return true;
+    else
+        return false;
+}
+/* 输出双向循环链表 */
+void PrintDLinkList(DLinkList L,int n)
+{
+    DLNode *s;
+    s=L;
+    int i;
+    for(i=0;i<n;i++)
+    {
+        printf("%d ",s->data);
+        s=s->next;
+    }
+}
+int main()
+{
+    int n;
+    scanf("%d",&n);
+    DLinkList L;
+    InitList(*L);
+    CreateDLinkList(L,n);
+    PrintDLinkList(L);
+    ClearList(L);
+    DestroyList(*L);
+}
