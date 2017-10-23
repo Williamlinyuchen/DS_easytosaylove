@@ -1,0 +1,201 @@
+#include<stdio.h>
+#include<stdlib.h>
+#include<malloc.h>
+#define OK 1
+#define OVERFLOW -2
+#define SIZE 2 //停车场位置数
+typedef int Status;
+typedef struct Car1
+{
+    int number; //车号
+    int ar_time; //到达时间
+}CarNode;
+
+typedef struct
+{
+    CarNode *base; //堆栈底
+    CarNode *top; //堆栈顶
+    int stacksize;
+}Park;
+typedef struct Car2
+{
+    int number; //车号
+    int ar_time; //到达时间
+    struct Car2 *next;
+}*CarPtr;
+typedef struct  //便道
+{
+    CarPtr front; //便道的队列的对头
+    CarPtr rear; //便道的队列的队尾
+    int length;
+}Shortcut;
+Status InitStack(Park &P)  //初始化停车场
+{
+    P.base=(CarNode*)malloc(SIZE*sizeof(Car1));
+    if(!P.base)
+        exit(OVERFLOW);
+    P.top=P.base;
+    P.stacksize=0;
+    return OK;
+}
+Status Push(Park &P,CarNode e)  //车进入停车场
+{
+    *P.top++=e;
+    ++P.stacksize;
+    return OK;
+}
+Status Pop(Park &P,CarNode &e)  //车离开停车场
+{
+    if(P.top==P.base)
+        printf("停车场为空");
+    else
+    {
+        e=*--P.top;
+        --P.stacksize;
+    }
+    return OK;
+}
+Status InitQueue(Shortcut &S)  //初始化便道
+{
+    S.front=S.rear=(CarPtr)malloc(sizeof(Car2));
+    if(!S.front||!S.rear)
+        exit(OVERFLOW);
+    S.front->next=NULL;
+    S.length=0;
+    return OK;
+
+}
+Status EnQueue(Shortcut &S,int number,int ar_time)  //车进入便道
+{
+    CarPtr p;
+    p=(CarPtr)malloc(sizeof(Car2));
+    if(!p)
+        exit(OVERFLOW);
+    p->number=number;
+    p->ar_time=ar_time;
+    p->next=NULL;
+    S.rear->next=p;
+    S.rear=p;
+    ++S.length;
+    return OK;
+}
+
+Status DeQueue(Shortcut &S,CarPtr &w)  //车离开便道
+{
+    if(S.length==0)
+        printf("通道为空");
+    else
+    {
+        w=S.front->next;
+        S.front->next=w->next;
+        --S.length;
+    }
+    return OK;
+}
+//处理进停车场车辆
+Status Arrival(Park &P,Shortcut &S)
+{
+    int number,ar_time;
+    printf("请输入车牌号：");
+    scanf("%d",&number);
+    printf("请输入进停车场的时刻：");
+    scanf("%d",&ar_time);
+    if(P.stacksize<SIZE)
+    {
+        CarNode c;
+        c.number=number;
+        c.ar_time=ar_time;
+        Push(P,c);
+        printf("该车停在第%d号车道\n",P.stacksize);
+    }
+    else
+    {
+        EnQueue(S,number,ar_time);
+        printf("停车场已满，暂时停在便道的第%d个位置。\n",S.length);
+    }
+    return OK;
+}
+//对离开车辆的处理
+Status Leave(Park &P,Park &P1,Shortcut &S)
+{
+    int number,le_time,flag=1,money,ar_time;
+    printf("请输入车牌号:");
+    scanf("%d",&number);
+    printf("请输入离开停车场的时刻");
+    scanf("%d",&le_time);
+    CarNode e,m;
+    CarPtr w;
+    while(P.stacksize)
+    {
+        Pop(P,e);
+        if(e.number==number)
+        {
+            flag=0;
+            money=(le_time-e.ar_time)*2;
+            ar_time=e.ar_time;
+            break;
+        }
+        Push(P1,e);
+    }
+    while(P1.stacksize)
+    {
+        Pop(P1,e);
+        Push(P,e);
+    }//车离开停车场
+    if(flag==0)
+    {
+        if(S.length!=0)
+        {
+            DeQueue(S,w);
+            m.ar_time=le_time;
+            m.number=w->number;
+            Push(P,m);
+            free(w);
+            printf("车牌号为%d的车已由便道进入停车场\n",m.number);
+        }
+        printf("停车费为%d，占用车位数为%d\n",money,P.stacksize);
+    }
+    else
+    {
+        printf("停车场不存在车牌号为%d的车\n",number);
+    }
+    return OK;
+}
+int main()
+{
+    int m=1;
+    char flag; //选项
+    Park P,Q;
+    Shortcut S;
+    InitStack(P);
+    InitStack(Q);
+    InitQueue(S);
+    while(m)
+    {
+        printf("A 汽车进车场\n");
+        printf("B 汽车出车场\n");
+        printf("C 退出程序\n");
+        printf("请选择(A,D,E): ");
+        scanf("%c",&flag);
+        switch(flag)
+        {
+            case 'A':
+            case 'a':
+            Arrival(P,S);break; //车进入停车场
+            case 'B':
+            case 'b':
+            Leave(P,Q,S);break; //车离开停车场
+            case 'C':
+            case 'c':
+            m=0;
+            break;
+            default:
+            printf("Input error!\n");
+            break;
+        }
+        while (flag != '\n')
+            scanf("%c",&flag);
+    }
+    return 0;
+
+}
