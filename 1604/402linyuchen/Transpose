@@ -1,0 +1,77 @@
+#include <stdio.h>
+#include <stdlib.h>
+#define MAXSIZE 50
+typedef struct
+{
+    int row,col; //行下标、列下标
+    int e;       //矩阵元素值
+}Triple;
+typedef struct
+{
+    Triple data[MAXSIZE];  //非零元素三元组表
+    int m,n,len;           //行数、列数、非零元素个数
+}TSMatrix;
+//转置矩阵算法
+void TransposeTSMatrix(TSMatrix A,TSMatrix *B)
+{
+    int i,j,k;
+    B->m=A.n;
+    B->n=A.m;
+    B->len=A.len;
+    if(B->len>0)
+    {
+        j=1;
+        for(k=1;k<=A.n;k++)
+            for(i=1;i<=A.len;i++)
+                if(A.data[i].col==k)
+                {
+                    B->data[j].row=A.data[i].col;
+                    B->data[j].col=A.data[i].row;
+                    B->data[j].e=A.data[i].e;
+                    j++;
+                }
+    }
+}
+int main()
+{
+    TSMatrix M1,M2;
+    M1.len=0;
+    int row,col,e;
+    int m,n,len,i,j,h,q;
+    scanf("%d %d",&m,&n);
+    M1.m=m;
+    M1.n=n;
+    j=1;
+    for(i=0;i<(m*n);i++)   //矩阵赋值
+    {
+        scanf("%d",&e);
+        if(e!=0)
+        {
+            M1.data[j].row=(i/n)+1;
+            M1.data[j].col=(i%n)+1;
+            M1.len++;
+            M1.data[j].e=e;
+            j++;
+        }
+    }
+    TransposeTSMatrix(M1,&M2);
+    for(i=0;i<(m*n);i++)
+    {
+        q=0;
+        for(h=1;h<=j;h++)
+        {
+            if(M2.data[h].row==((i/n)+1)&&M2.data[h].col==((i%n)+1))
+            {
+                printf("%d ",M2.data[h].e);
+                q++;
+                break;
+            }
+        }
+        if(q==0)
+            printf("0 ");
+        if((i+1)%n==0)
+        {
+            printf("\n");
+        }
+    }
+}
